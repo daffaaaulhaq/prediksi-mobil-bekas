@@ -157,31 +157,8 @@ mae_est = compute_mae_for_interval(model, train_df)
 
 # ====== THEME SWITCHER ======
 st.set_page_config(page_title="Prediksi Harga Mobil Bekas", page_icon="🚗", layout="wide")
-if "theme_mode" not in st.session_state:
-    st.session_state["theme_mode"] = "Light"
-with st.sidebar:
-    theme_mode = st.radio("Pilih Mode Tampilan:", ["Light", "Dark"], index=0 if st.session_state["theme_mode"]=="Light" else 1)
-    st.session_state["theme_mode"] = theme_mode
 
-# Inject CSS for light/dark mode
-if st.session_state["theme_mode"] == "Dark":
-    components.html("""
-    <style>
-    body, .stApp { background-color: #222 !important; color: #eee !important; }
-    .stButton>button { background-color: #333 !important; color: #fff !important; }
-    .stSelectbox, .stNumberInput, .stTextInput { background-color: #333 !important; color: #fff !important; }
-    </style>
-    """, height=0)
-else:
-    components.html("""
-    <style>
-    body, .stApp { background-color: #fff !important; color: #222 !important; }
-    .stButton>button { background-color: #f5f5f5 !important; color: #222 !important; }
-    .stSelectbox, .stNumberInput, .stTextInput { background-color: #fff !important; color: #222 !important; }
-    </style>
-    """, height=0)
-
-st.title("🚗 Prediksi Harga Mobil Bekas — Web Interaktif")
+st.title("Prediksi Harga Mobil Bekas — Web Interaktif")
 st.caption("Isi atribut mobil (tanpa nama pemilik & showroom). Model: Multiple Linear Regression (OLS).")
 
 
@@ -220,7 +197,7 @@ with col2:
 st.divider()
 c1, c2, c3 = st.columns([1,1,6])
 with c1:
-    predict_btn = st.button("🔮 Prediksi Harga", type="primary")
+    predict_btn = st.button("Prediksi Harga", type="primary")
 with c2:
     reset = st.button("↺ Reset")
 
