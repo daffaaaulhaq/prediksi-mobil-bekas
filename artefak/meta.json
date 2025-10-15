@@ -1,0 +1,27 @@
+{
+  "num_cols": [
+    "Tahun",
+    "Jarak_km",
+    "CC_mid",
+    "Usia_mobil"
+  ],
+  "cat_cols": [
+    "Merek",
+    "Model",
+    "Varian",
+    "Tipe bahan bakar",
+    "Transmisi",
+    "Tipe bodi",
+    "Sistem Penggerak",
+    "Warna",
+    "Tipe Penjual",
+    "KotaKab",
+    "Provinsi",
+    "Nama Bursa Mobil"
+  ],
+  "target": "Harga",
+  "log_target": true,
+  "seed": 42,
+  "train_path": "train.csv",
+  "test_path": "test.csv"
+}
