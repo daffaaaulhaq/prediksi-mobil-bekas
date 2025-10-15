@@ -13,11 +13,7 @@
     "Transmisi",
     "Tipe bodi",
     "Sistem Penggerak",
-    "Warna",
-    "Tipe Penjual",
-    "KotaKab",
-    "Provinsi",
-    "Nama Bursa Mobil"
+    "Warna"
   ],
   "target": "Harga",
   "log_target": true,

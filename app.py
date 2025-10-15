@@ -21,6 +21,7 @@ BASE = Path(__file__).resolve().parent
 DIR_ART = BASE / "artefak"
 DIR_TRAIN = BASE / "data_training"
 META_PATH = DIR_ART / "meta.json"
+
 MODEL_PATH = DIR_ART / "model_linreg.pkl"
 
 assert META_PATH.exists(), f"meta.json tidak ditemukan: {META_PATH}"
@@ -35,9 +36,6 @@ TARGET = meta["target"]
 use_log = meta.get("log_target", True)
 THIS_YEAR = datetime.now().year
 
-# Kita tidak tampilkan Penjual & Nama Bursa Mobil di UI.
-# Jika "Nama Bursa Mobil" ada dalam cat_cols, kita akan isi NaN saat inferensi.
-HIDE_COLS = {"Nama Bursa Mobil", "Penjual"}
 
 # -----------------------------
 # Cache loading
@@ -115,7 +113,7 @@ def uniq(df, col):
 
 def prepare_input(
     tahun, jarak_km, cc_mid, merek, model_name, varian, bbm,
-    transmisi, tipe_bodi, sistem_penggerak, warna, kotakab, provinsi
+    transmisi, tipe_bodi, sistem_penggerak, warna
 ):
     usia = THIS_YEAR - tahun if pd.notna(tahun) else np.nan
     row = {
@@ -131,11 +129,6 @@ def prepare_input(
         "Tipe bodi": tipe_bodi,
         "Sistem Penggerak": sistem_penggerak,
         "Warna": warna,
-        "KotaKab": kotakab,
-        "Provinsi": provinsi,
-        # Kolom yang disembunyikan di-NaN-kan agar kompatibel dengan pipeline
-        "Tipe Penjual": np.nan if "Tipe Penjual" in cat_cols else None,
-        "Nama Bursa Mobil": np.nan if "Nama Bursa Mobil" in cat_cols else None,
     }
     # pastikan semua kolom yang diminta model tersedia & berurutan
     needed = num_cols + cat_cols
@@ -143,6 +136,7 @@ def prepare_input(
         if c not in row:
             row[c] = np.nan
     return pd.DataFrame([row])[needed]
+
 
 # -----------------------------
 # Load resources
@@ -188,11 +182,29 @@ with col1:
 with col2:
     bbm = st.selectbox("Tipe bahan bakar", options=uniq(train_df, "Tipe bahan bakar") or ["Bensin"])
     transmisi = st.selectbox("Transmisi", options=uniq(train_df, "Transmisi") or ["Automatic"])
-    tipe_bodi = st.selectbox("Tipe bodi", options=uniq(train_df, "Tipe bodi") or ["MPV"])
+
+    # 🔥 AUTO FILL TIPE BODI (TANPA INPUT)
+    df_bodi_auto = df_mm[df_mm["Varian"].astype(str) == str(varian)]
+    bodi_list = df_bodi_auto["Tipe bodi"].dropna().unique().tolist()
+
+    # Ambil daftar tipe bodi dari dataset sesuai Merek + Model + Varian
+    df_bodi_auto = df_mm[df_mm["Varian"].astype(str) == str(varian)]
+    bodi_list = df_bodi_auto["Tipe bodi"].dropna().unique().tolist()
+
+    # Tentukan default value
+    if len(bodi_list) == 0:
+        default_bodi = ""
+    elif len(bodi_list) == 1:
+        default_bodi = bodi_list[0]
+    else:
+        default_bodi = df_bodi_auto["Tipe bodi"].mode()[0]
+
+    # Tampilkan sebagai field input biasa (tanpa warna)
+    tipe_bodi = st.text_input("Tipe bodi", value=default_bodi)
+
+
     drivetrain = st.selectbox("Sistem Penggerak", options=uniq(train_df, "Sistem Penggerak") or ["Front Wheel Drive (FWD)"])
     warna = st.selectbox("Warna", options=uniq(train_df, "Warna") or ["Hitam"])
-    kotakab = st.selectbox("Kota/Kab", options=uniq(train_df, "KotaKab") or ["Bandung Kota"])
-    provinsi = st.selectbox("Provinsi", options=uniq(train_df, "Provinsi") or ["Jawa Barat"])
 
 st.divider()
 c1, c2, c3 = st.columns([1,1,6])
@@ -206,9 +218,10 @@ if reset:
 
 if predict_btn:
     X_in = prepare_input(
-        tahun, jarak_km, cc_mid, merek, model_name, varian, bbm,
-        transmisi, tipe_bodi, drivetrain, warna, kotakab, provinsi
+    tahun, jarak_km, cc_mid, merek, model_name, varian, bbm,
+    transmisi, tipe_bodi, drivetrain, warna
     )
+
     y_hat = model.predict(X_in)
     if use_log:
         y_hat = np.expm1(y_hat)
